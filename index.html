@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <!--    <meta charset="utf-8">-->
+  <title>Unity WebGL Player | Stretchy Colors</title>
+</head>
+<body style="text-align: center; padding: 0; border: 0; margin: 0;">
+<canvas id="unity-canvas" width=450 height=600 style="width: 450px; height: 600px; background: #231F20"></canvas>
+<script src="Build/WebGL_gschefstretchycolors_v.0.1.7.loader.js"></script>
+<script>
+  function aFunctionImplementedInHtmlFile(txt) {
+    console.log("------> FUCKKKKK html.....");
+
+    window.top.postMessage({
+      message: "ReceiveMessageFromUnity",
+      data: txt
+    }, "*");
+  }
+
+  let canvas = document.querySelector("#unity-canvas");
+  let myGameInstance;
+
+  createUnityInstance(canvas, {
+    dataUrl: "Build/WebGL_gschefstretchycolors_v.0.1.7.data",
+    frameworkUrl: "Build/WebGL_gschefstretchycolors_v.0.1.7.framework.js",
+    codeUrl: "Build/WebGL_gschefstretchycolors_v.0.1.7.wasm",
+    streamingAssetsUrl: "StreamingAssets",
+    companyName: "CHEF Game Studio",
+    productName: "Stretchy Colors",
+    productVersion: "0.1.7",
+    // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
+    // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
+  }).then((unityInstance) => {
+    myGameInstance = unityInstance;
+  }).catch((message) => {
+    alert(message);
+  });
+
+  window.onmessage = function (e) {
+    if (e.data.message == "SetResolution") {
+
+      console.log("WebGL Script!!! width: " + e.data.width + " height: " + e.data.height);
+
+      canvas.style.width = e.data.width + "px";
+      canvas.style.height = e.data.height + "px";
+      canvas.style.scale = 600 / e.data.height;
+      canvas.style.transformOrigin = "0 0";
+
+      let resolution = {
+        width: e.data.width,
+        height: e.data.height
+      };
+      // unity.SendMessage("WebGLManager", "SetResolution", JSON.stringify(resolution));
+
+      myGameInstance.SendMessage("Bridge", "SetCanvasReferenceResolution", JSON.stringify(resolution));
+    } else if (e.data.message == "SetUserInteractionData") {
+
+      console.log("iFrame Unity -> userInteractionData: " + JSON.stringify(e.data.uiInteractionDataJsonString));
+      console.log("iFrame Unity -> userInteractionData: " + JSON.stringify(e.data.worldInteractionDataJsonString));
+      console.log("iFrame Unity -> userInteractionData: " + JSON.stringify(e.data.additionalDataJsonString));
+
+      let interactions = {
+        ui: JSON.stringify(e.data.uiInteractionDataJsonString),
+        world: JSON.stringify(e.data.worldInteractionDataJsonString),
+        additional: JSON.stringify(e.data.additionalDataJsonString)
+      };
+
+      // unity.SendMessage("Bridge", "SetUserInteractionData", JSON.stringify(e.data.uiInteractionDataJsonString), JSON.stringify(e.data.worldInteractionDataJsonString));
+      myGameInstance.SendMessage("Bridge", "SetUserInteractionData", JSON.stringify(interactions));
+    }
+  }
+</script>
+</body>
+</html>
